@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>.</title>
+    <style>
+      body {
+        font-family: "Courier New", monospace;
+        margin: 20px;
+      }
+
+      /* .code-container {
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: #ffffff;
+      } */
+
+      button {
+        cursor: pointer;
+      }
+      code {
+        width: 0;
+        height: 0;
+        margin: 0;
+        padding: 0;
+        font-size: 0;
+        display: inline;
+      }
+      pre {
+        height: 0;
+      }
+
+      .big{
+        display: flex;
+      }
+
+      button{
+        background-color: #fff;
+        border-color: white;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="big">
+    <div class="code-container">
+      <!-- 1. Get record from mysql -->
+      <pre id="codeBlock1">
+        <code>
+            import java.sql.Connection;
+            import java.sql.DriverManager;
+            import java.sql.ResultSet;
+            import java.sql.SQLException;
+            import java.sql.Statement;
+            
+            public class CreateDatabaseTable {
+                public static void main(String[] args) {
+                    Connection connection = null;
+                    try {
+                        // Open a connection
+                        Class.forName("com.mysql.cj.jdbc.Driver");
+                        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mybookstore", "root", "root");
+            
+                        // Create a statement
+                        Statement stmt = connection.createStatement();
+            
+                        // Select data from the 'books' table
+                        String strSelect = "SELECT title, price, qty FROM books";
+                        System.out.print("The SQL statement is " + strSelect + "\n");
+            
+                        ResultSet rset = stmt.executeQuery(strSelect);
+                        System.out.print("The records selected are: ");
+            
+                        int rowCount = 0;
+                        while (rset.next()) {
+                            String title = rset.getString("title");
+                            double price = rset.getDouble("price");
+                            int qty = rset.getInt("qty");
+                            System.out.println(title + " " + price + ", " + qty);
+                            rowCount++;
+                        }
+            
+                        System.out.println("Total number of records - " + rowCount);
+            
+                    } catch (ClassNotFoundException | SQLException e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            // Close resources
+                            if (connection != null) {
+                                connection.close();
+                            }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            
+
+
+            
+        </code>
+    </pre>
+      <button onclick="copyToClipboard('codeBlock1')">
+        Get record from mysql
+      </button>
+    </div>
+
+    <!-- make database mybookstore  -->
+    <div class="code-container">
+      <pre id="codeBlock2">
+        <code>-- Create the database
+            CREATE DATABASE IF NOT EXISTS mybookstore;
+            
+            -- Use the database
+            USE mybookstore;
+            
+            -- Create the 'books' table
+            CREATE TABLE IF NOT EXISTS books (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                author VARCHAR(255) NOT NULL,
+                price DECIMAL(10, 2) NOT NULL,
+                qty INT NOT NULL
+            );
+            
+            -- Insert data into the 'books' table
+            INSERT INTO books (title, author, price, qty) VALUES
+                ('Book1', 'Author1', 19.99, 100),
+                ('Book2', 'Author2', 29.99, 75),
+                ('Book3', 'Author3', 24.99, 120);
+                </code>
+    </pre>
+      <button onclick="copyToClipboard('codeBlock2')">
+        make database mybookstore
+      </button>
+    </div>
+
+    <!-- Network Prog, .net, client server prog -->
+    <div class="code-container">
+      <pre id="codeBlock3">
+        <code>
+          
+            package socketprogram;
+
+            import java.io.DataInputStream;
+            import java.io.DataOutputStream;
+            import java.io.IOException;
+            import java.io.InputStream;
+            import java.io.OutputStream;
+            import java.net.Socket;
+            
+            public class GreetingClient {
+                public static void main(String[] args) {
+                    String serverName = args[0];
+                    int port = Integer.parseInt(args[1]);
+            
+                    try {
+                        System.out.println("Connecting to " + serverName + " on port " + port);
+                        Socket client = new Socket(serverName, port);
+                        System.out.println("Just connected to " + client.getRemoteSocketAddress());
+            
+                        OutputStream outToServer = client.getOutputStream();
+                        DataOutputStream out = new DataOutputStream(outToServer);
+                        out.writeUTF("Hello from " + client.getLocalSocketAddress());
+            
+                        InputStream inFromServer = client.getInputStream();
+                        DataInputStream in = new DataInputStream(inFromServer);
+                        System.out.println("Server says: " + in.readUTF());
+            
+                        client.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            
+
+
+
+            //Server Side--------------------------------------------------------------------------------------------
+
+
+
+
+            package socketprogram;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+
+public class GreetingServer extends Thread {
+    private ServerSocket serverSocket;
+
+    public GreetingServer(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
+        serverSocket.setSoTimeout(1000000);
+    }
+
+    public void run() {
+        while (true) {
+            try {
+                System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "...");
+                Socket server = serverSocket.accept();
+                System.out.println("Just connected to " + server.getRemoteSocketAddress());
+
+                DataInputStream in = new DataInputStream(server.getInputStream());
+                DataOutputStream out = new DataOutputStream(server.getOutputStream());
+                out.writeUTF("Thanks for connecting to " + server.getLocalSocketAddress() + "\nGoodbye!");
+                server.close();
+            } catch (SocketTimeoutException e) {
+                System.out.println("Socket timed out");
+                break;
+            } catch (IOException e) {
+                e.printStackTrace();
+                break;
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        int port = Integer.parseInt(args[0]);
+        try {
+            new GreetingServer(port).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+        </code>
+    </pre>
+      <button onclick="copyToClipboard('codeBlock3')">
+        Network Prog, .net, client server prog
+      </button>
+    </div>
+
+    <!-- Addition Server -->
+    <div class="code-container">
+      <pre id="codeBlock3">
+        <code>
+            //Addition Interface
+            import java.rmi.Remote;
+            import java.rmi.RemoteException;
+            
+            public interface AdditionInterface extends Remote {
+                int add(int a, int b) throws RemoteException;
+            }
+
+
+            //Addition Implementation
+            import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class Addition extends UnicastRemoteObject implements AdditionInterface {
+    public Addition() throws RemoteException {
+        super();
+    }
+
+    public int add(int a, int b) throws RemoteException {
+        return a + b;
+    }}
+
+            //Addition Server
+            import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+
+public class AdditionServer {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099); // Create the RMI registry on port 1099
+            Addition hello = new Addition();
+            Naming.rebind("rmi://localhost/ABC", hello);
+            System.out.println("Addition server is ready");
+        } catch (Exception e) {
+            System.out.println("Addition server failed: " + e);
+        }
+    }
+}
+
+            //Addition Client
+import java.rmi.Naming;
+
+public class AdditionClient {
+    public static void main(String[] args) {
+        AdditionInterface hello;
+        try {
+            hello = (AdditionInterface) Naming.lookup("rmi://localhost/ABC");
+            int result = hello.add(9, 10);
+            System.out.println("Result is " + result);
+        } catch (Exception e) {
+            System.out.println("Hello client exception: " + e);
+        }
+    }
+}
+
+
+              
+            
+
+        </code>
+    </pre>
+      <button onclick="copyToClipboard('codeBlock3')">Addition Server</button>
+    </div>
+
+    <!-- Serverlet -->
+    <div class="code-container">
+      <pre id="codeBlock4">
+        <code>
+            import java.io.IOException;
+            import java.io.PrintWriter;
+            
+            import javax.servlet.ServletException;
+            import javax.servlet.annotation.WebServlet;
+            import javax.servlet.http.HttpServlet;
+            import javax.servlet.http.HttpServletRequest;
+            import javax.servlet.http.HttpServletResponse;
+            
+            @WebServlet("/myservlet")
+            public class MyServlet extends HttpServlet {
+                private static final long serialVersionUID = 1L;
+            
+                public MyServlet() {
+                    super();
+                }
+            
+                protected void doGet(HttpServletRequest request, HttpServletResponse response)
+                        throws ServletException, IOException {
+                    response.setContentType("text/html");
+                    PrintWriter out = response.getWriter();
+                    out.print(" html> body>");
+                    out.print(" h1>Hello World /h1>");
+                    out.print(" /body> /html>");
+                }
+            }
+            
+
+        </code>
+    </pre>
+      <button onclick="copyToClipboard('codeBlock4')">Serverlet</button>
+    </div></div>
+    <!-- Add more code blocks and buttons as needed -->
+
+    <script>
+      function copyToClipboard(elementId) {
+        // Get the text content of the code block
+        var codeToCopy = document.getElementById(elementId).innerText;
+
+        // Create a temporary textarea element and set its value to the code to be copied
+        var tempTextArea = document.createElement("textarea");
+        tempTextArea.value = codeToCopy;
+
+        // Append the textarea to the document
+        document.body.appendChild(tempTextArea);
+
+        // Select the text in the textarea
+        tempTextArea.select();
+        tempTextArea.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the selected text to the clipboard
+        document.execCommand("copy");
+
+        // Remove the temporary textarea
+        document.body.removeChild(tempTextArea);
+
+        // Provide some visual feedback (optional)
+        // alert("👍");
+      }
+    </script>
+  </body>
+</html>
